@@ -11,50 +11,33 @@ struct ContentView: View {
     // ----- Ici on précise le type de astronauts parceque la méthode main prend en paramètre un type inconnu et retourne un type inconnu alors que Swift a BESOIN de connaître le type
     let astronauts: [String: Astronaut] = Bundle.main.decode("astronauts.json")
     let missions: [Mission] = Bundle.main.decode("missions.json")
-    
-    let columns = [GridItem(.adaptive(minimum: 150))]
+    @AppStorage("showingGrid") private var showingGrid = true
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                LazyVGrid(columns: columns) {
-                    ForEach(missions) { mission in
-                        NavigationLink {
-                            MissionView(mission: mission, astronauts: astronauts)
-                        } label: {
-                            VStack {
-                                Image(mission.image)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: /*@START_MENU_TOKEN@*/100/*@END_MENU_TOKEN@*/, height: 100)
-                                    .padding()
-                                
-                                VStack {
-                                    Text(mission.displayName)
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                    Text(mission.formattedLaunchDate)
-                                        .font(.caption)
-                                        .foregroundColor(.white.opacity(0.5))
-                                }
-                                .padding(.vertical)
-                                .frame(maxWidth: .infinity)
-                                .background(.lightBackground)
-                            }
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(.lightBackground)
-                            )
-                        }
-                    }
+            // ----- Utilisatin de Group{} pour wrapper la condition et pourovir appliquer des modifiers sans devoir les mettre dans chaque view
+            Group {
+                if showingGrid {
+                    GridLayout(astronauts: astronauts, missions: missions)
+                } else {
+                    ListLayout(astronauts: astronauts, missions: missions)
                 }
-                .padding([.horizontal, .bottom])
             }
             .navigationTitle("Moonshot")
             .background(.darkBackground)
             // ----- Force swift ui à utiliser le dark mode au lieu du light mode
             .preferredColorScheme(.dark)
+            .toolbar {
+                Button() {
+                    showingGrid.toggle()
+                } label: {
+                    if showingGrid {
+                        Label("Show as table", systemImage: "list.dash")
+                    } else {
+                        Label("Show as grid", systemImage: "square.grid.2x2")
+                    }
+                }
+            }
         }
     }
 }
